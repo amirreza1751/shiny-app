@@ -7,18 +7,18 @@ source("helpers.R")
 
 # User interface ----
 ui <- fluidPage(
-  titlePanel("stockVis"),
+  titlePanel("Demonstration of Stocks During the Time"),
   
   sidebarLayout(
     sidebarPanel(
       helpText("Select a stock to examine.
 
         Information will be collected from Yahoo finance."),
-      textInput("symb", "Symbol", "SPY"),
+      textInput("symb", "Symbol", "TSLA"),
       
       dateRangeInput("dates",
                      "Date range",
-                     start = "2013-01-01",
+                     start = "2015-01-01",
                      end = as.character(Sys.Date())),
       
       br(),
@@ -37,8 +37,8 @@ ui <- fluidPage(
   ,
   fluidRow(
     column(3, 
-           sliderInput("slider1", h3("Sliders"),
-                       min = 0, max = 100, value = 50),
+           sliderInput("slider1", h3("Select a Number"),
+                       min = 0, max = 100, value = 25),
            plotOutput("hist"),
            verbatimTextOutput("stats")
     )
@@ -69,7 +69,7 @@ server <- function(input, output) {
     hist(rnorm(input$slider1))
   })
   
-  output$stats <- renderPlot({
+  output$stats <- renderPrint({
     summary(rnorm(input$slider1))
   })
 }
