@@ -33,25 +33,45 @@ ui <- fluidPage(
     
     mainPanel(plotOutput("plot"))
   )
+  
+  ,
+  fluidRow(
+    column(3, 
+           sliderInput("slider1", h3("Sliders"),
+                       min = 0, max = 100, value = 50),
+           plotOutput("hist"),
+           verbatimTextOutput("stats")
+    )
+  )
 )
 
 # Server logic
 server <- function(input, output) {
   
-  dataInput <- reactive({
+  dataInput <- reactive({  
     getSymbols(input$symb, src = "yahoo",
                from = input$dates[1],
                to = input$dates[2],
                auto.assign = FALSE)
   })
   
+  finalInput <- reactive({
+    if (!input$adjust) return(dataInput())
+    adjust(dataInput())
+  })
+  
   output$plot <- renderPlot({
-    
-    chartSeries(dataInput(), theme = chartTheme("white"),
+    chartSeries(finalInput(), theme = chartTheme("white"),
                 type = "line", log.scale = input$log, TA = NULL)
   })
   
+  output$hist <- renderPlot({
+    hist(rnorm(input$slider1))
+  })
+  
+  output$stats <- renderPlot({
+    summary(rnorm(input$slider1))
+  })
 }
-
 # Run the app
 shinyApp(ui, server)
