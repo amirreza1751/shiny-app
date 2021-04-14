@@ -7,4 +7,5 @@
 <h4>It is just needed to select the number of datasets to be simulated.</h4>
 
 <h1>How to run the project:</h1>
+<h4> Firstly, install and import the package <code>shiny</code> in the rstudio. Then, run the command below:</h4>
 <code>runGitHub("shiny-app", "amirreza1751", ref="master")</code>
