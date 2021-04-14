@@ -1,56 +1,57 @@
-library(maps)
-library(mapproj)
+# Load packages ----
+library(shiny)
+library(quantmod)
+
+# Source helpers ----
 source("helpers.R")
-counties <- readRDS("data/counties.rds")
 
 # User interface ----
 ui <- fluidPage(
-  titlePanel("censusVis"),
+  titlePanel("stockVis"),
   
   sidebarLayout(
     sidebarPanel(
-      helpText("Create demographic maps with 
-        information from the 2010 US Census."),
+      helpText("Select a stock to examine.
+
+        Information will be collected from Yahoo finance."),
+      textInput("symb", "Symbol", "SPY"),
       
-      selectInput("var", 
-                  label = "Choose a variable to display",
-                  choices = c("Percent White", "Percent Black",
-                              "Percent Hispanic", "Percent Asian"),
-                  selected = "Percent White"),
+      dateRangeInput("dates",
+                     "Date range",
+                     start = "2013-01-01",
+                     end = as.character(Sys.Date())),
       
-      sliderInput("range", 
-                  label = "Range of interest:",
-                  min = 0, max = 100, value = c(0, 100))
+      br(),
+      br(),
+      
+      checkboxInput("log", "Plot y axis on log scale",
+                    value = FALSE),
+      
+      checkboxInput("adjust",
+                    "Adjust prices for inflation", value = FALSE)
     ),
     
-    mainPanel(plotOutput("map"))
+    mainPanel(plotOutput("plot"))
   )
 )
 
-# Server logic ----
+# Server logic
 server <- function(input, output) {
-  output$map <- renderPlot({
-    data <- switch(input$var, 
-                   "Percent White" = counties$white,
-                   "Percent Black" = counties$black,
-                   "Percent Hispanic" = counties$hispanic,
-                   "Percent Asian" = counties$asian)
-    
-    color <- switch(input$var, 
-                    "Percent White" = "darkgreen",
-                    "Percent Black" = "black",
-                    "Percent Hispanic" = "darkorange",
-                    "Percent Asian" = "darkviolet")
-    
-    legend <- switch(input$var, 
-                     "Percent White" = "% White",
-                     "Percent Black" = "% Black",
-                     "Percent Hispanic" = "% Hispanic",
-                     "Percent Asian" = "% Asian")
-    
-    percent_map(data, color, legend, input$range[1], input$range[2])
+  
+  dataInput <- reactive({
+    getSymbols(input$symb, src = "yahoo",
+               from = input$dates[1],
+               to = input$dates[2],
+               auto.assign = FALSE)
   })
+  
+  output$plot <- renderPlot({
+    
+    chartSeries(dataInput(), theme = chartTheme("white"),
+                type = "line", log.scale = input$log, TA = NULL)
+  })
+  
 }
 
-# Run app ----
+# Run the app
 shinyApp(ui, server)
